@@ -30,10 +30,14 @@ endif()
 
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../cmake_modules)
 
-find_package(OpenCV 3.2.0 REQUIRED)
+SET(OpenCV_DIR "/opt/share/OpenCV/")
+find_package(OpenCV 3 REQUIRED PATHS "/opt/share/OpenCV/")
+message(${OpenCV_DIR})
+message(${OpenCV_INCLUDE_DIRS})
 find_package(Eigen3 3.1.0 REQUIRED)
 find_package(Pangolin REQUIRED)
 find_package(CUDA REQUIRED)
+message(${CUDA_INCLUDE_DIRS})
 
 find_package( PCL REQUIRED )
 include_directories(  ${catkin_INCLUDE_DIRS}  ${PCL_INCLUDE_DIRS} )

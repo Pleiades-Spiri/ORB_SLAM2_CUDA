@@ -23,9 +23,10 @@ set(HDRS_DUTILS
 set(SRCS_DUTILS
   DUtils/Random.cpp
   DUtils/Timestamp.cpp)
-
-find_package(OpenCV REQUIRED)
-
+SET(OpenCV_DIR "/opt/share/OpenCV/")
+find_package(OpenCV 3 REQUIRED PATHS "/opt/share/OpenCV/")
+message(${OpenCV_DIR})
+message(${OpenCV_INCLUDE_DIRS})
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
