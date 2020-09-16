@@ -121,6 +121,22 @@ public:
     // Get pointer to FrameDrawer thread
     FrameDrawer* GetpFrameDrawer(void);
 
+
+    // Last confirmed pose to restart from when tracking is lost
+    cv::Mat last_pose;
+    bool SetLastPose(cv::Mat P);
+    cv::Mat GetLastPose(void);
+    
+    // A check if the system had a pose already before to restart from
+    bool system_has_pose;
+    bool SetSysHasPose(bool SHP);
+    bool GetSysHasPose(void);
+
+    ///setting Tracker Pose for restarting the tracker
+    bool SetTrackerPosition (cv::Mat Pose);
+    bool SetTrackerPoseState ();
+
+
 private:
 
     // Input sensor

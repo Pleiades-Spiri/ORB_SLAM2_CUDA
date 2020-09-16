@@ -115,6 +115,12 @@ public:
 
     void Reset();
 
+    bool TrackerHasPose;
+    cv::Mat LastKnownPose;
+    bool SetTrackerLastKnownPose (cv::Mat P);
+    bool SetTrackerHasPose();
+
+
 protected:
 
     // Main tracking function. It is independent of the input sensor.

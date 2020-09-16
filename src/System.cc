@@ -114,6 +114,9 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     mpLoopCloser->SetTracker(mpTracker);
     mpLoopCloser->SetLocalMapper(mpLocalMapper);
+    
+    //Setting the system has pose to false
+    system_has_pose = false;
 }
 
 cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp)
@@ -459,5 +462,42 @@ FrameDrawer* System::GetpFrameDrawer(void)
 {
     return mpFrameDrawer;
 }
+
+
+bool System::SetLastPose(cv::Mat P){
+    
+    last_pose = P;
+    return true;
+}
+
+
+cv::Mat System::GetLastPose(void){
+    
+    return last_pose;
+}
+
+bool System::SetSysHasPose(bool SHP){
+
+    system_has_pose = SHP;
+    return true;
+}
+
+bool System::GetSysHasPose(void){
+
+    return system_has_pose;
+}
+
+bool System::SetTrackerPosition (cv::Mat Pose){
+    
+    mpTracker->SetTrackerLastKnownPose(Pose);
+    return true;
+}
+
+bool System::SetTrackerPoseState(){
+
+    mpTracker->SetTrackerHasPose();
+    return true;
+}
+
 
 } //namespace ORB_SLAM

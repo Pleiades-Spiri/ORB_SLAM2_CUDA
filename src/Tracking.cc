@@ -626,8 +626,17 @@ void Tracking::MonocularInitialization()
             }
 
             // Set Frame Poses
-            mInitialFrame.SetPose(cv::Mat::eye(4,4,CV_32F));
             cv::Mat Tcw = cv::Mat::eye(4,4,CV_32F);
+            if(!TrackerHasPose){
+               std::cout<<"Intializing with identity"<<std::endl;
+               mInitialFrame.SetPose(cv::Mat::eye(4,4,CV_32F));
+            }
+            else{
+               std::cout<<"Intializing with last known pose"<<std::endl;
+               mInitialFrame.SetPose(LastKnownPose);
+               cv::Mat Tcw = LastKnownPose;
+            }
+            
             Rcw.copyTo(Tcw.rowRange(0,3).colRange(0,3));
             tcw.copyTo(Tcw.rowRange(0,3).col(3));
             mCurrentFrame.SetPose(Tcw);
@@ -1574,6 +1583,16 @@ void Tracking::InformOnlyTracking(const bool &flag)
     mbOnlyTracking = flag;
 }
 
+bool Tracking::SetTrackerLastKnownPose(cv::Mat P)
+{
+    LastKnownPose = P;
+    return true;
+}
 
+bool Tracking::SetTrackerHasPose()
+{
+    TrackerHasPose = true;
+    return true;
+}
 
 } //namespace ORB_SLAM

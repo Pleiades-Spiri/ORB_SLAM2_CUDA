@@ -18,6 +18,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
 #include <vector>
+#include <opencv2/core/core.hpp>
 
 //#include <pcl/visualization/cloud_viewer.h> 
 #include <pcl/io/pcd_io.h>
@@ -61,6 +62,7 @@ namespace ORB_SLAM2
         
     public:
         SlamData(ORB_SLAM2::System* pSLAM, ros::NodeHandle *nodeHandler, bool bPublishROSTopic);
+	bool Initialized;
 
         void SaveTimePoint(TimePointIndex index);
 
@@ -76,8 +78,28 @@ namespace ORB_SLAM2
 
         bool EnablePublishROSTopics(void);
 
+	bool IntializationState(bool S);
+	bool SetLastTransform(tf::Transform T);
+        tf::Transform get_last_transform();
+
+        bool ResettingState;
+	bool SetResettingState(bool RS);
+	bool GetResettingState(void);
+
+	bool SetPreResetTransform(tf::Transform PRT);
+	tf::Transform GetPreResetTransform(void);
+	cv::Mat TransformToCV(tf::Transform T);
+
+        void PublishPositionAsTransform (cv::Mat position);
+        void PublishPositionAsPoseStamped(cv::Mat position);
+        tf::Transform TransformFromMat (cv::Mat position_mat);
+
+
+	
+
     private:
         bool bEnablePublishROSTopic;
+
 
         ORB_SLAM2::System* mpSLAM;
         
@@ -90,7 +112,7 @@ namespace ORB_SLAM2
 
         image_transport::Publisher current_frame_pub;
 
-        tf::Transform new_transform, last_transform;
+        tf::Transform new_transform, last_transform, prereset_transform;
 
         Eigen::Matrix3f mInitCam2Ground_R;
         Eigen::Vector3f mInitCam2Ground_t;
@@ -99,6 +121,7 @@ namespace ORB_SLAM2
         std::chrono::steady_clock::time_point tp1, tp2, tp3;
 
         void GetCurrentROSPointCloud(sensor_msgs::PointCloud2 &all_point_cloud, sensor_msgs::PointCloud2 &ref_point_cloud);
+	
     };
 }
 #endif // SLAMDATA_H

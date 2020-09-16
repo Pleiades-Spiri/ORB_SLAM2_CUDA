@@ -1,33 +1,33 @@
 set -e
 
-echo "Configuring and building Thirdparty/DBoW2 ..."
+#echo "Configuring and building Thirdparty/DBoW2 ..."
 
-cd Thirdparty/DBoW2
-mkdir -p build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j1
+#cd Thirdparty/DBoW2
+#mkdir -p build
+#cd build
+#cmake .. -DCMAKE_BUILD_TYPE=Release 
+#make -j4
 
-cd ../../g2o
+#cd ../../g2o
 
-echo "Configuring and building Thirdparty/g2o ..."
+#echo "Configuring and building Thirdparty/g2o ..."
 
-mkdir -p build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j1
+#mkdir -p build
+#cd build
+#cmake .. -DCMAKE_BUILD_TYPE=Release 
+#make -j4
 
-cd ../../../
+#cd ../../../
 
-echo "Uncompress vocabulary ..."
+#echo "Uncompress vocabulary ..."
 
-cd Vocabulary
-tar -xf ORBvoc.txt.tar.gz
-cd ..
+#cd Vocabulary
+#tar -xf ORBvoc.txt.tar.gz
+#cd ..
 
 echo "Configuring and building ORB_SLAM2 ..."
 
 mkdir -p build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j1
+cmake .. -DCMAKE_BUILD_TYPE=Release 
+make -j4

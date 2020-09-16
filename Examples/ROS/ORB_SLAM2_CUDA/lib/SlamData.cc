@@ -13,6 +13,8 @@ SlamData::SlamData(ORB_SLAM2::System* pSLAM, ros::NodeHandle *nodeHandler, bool 
     mpSLAM = pSLAM;
     mpFrameDrawer = mpSLAM->GetpFrameDrawer();
     bEnablePublishROSTopic = bPublishROSTopic;
+    Initialized = false;
+    ResettingState = false;
     // Perform tf transform and publish
     last_transform.setOrigin(tf::Vector3(0,0,0));
     tf::Quaternion q(0,0,0,1);
@@ -217,5 +219,115 @@ bool SlamData::EnablePublishROSTopics(void)
 {
     return bEnablePublishROSTopic;
 }
+
+bool SlamData::IntializationState(bool State)
+{
+    Initialized = State;
+    return true;
+}
+
+tf::Transform SlamData::get_last_transform(){
+
+    return last_transform;
+
+}
+
+bool SlamData::SetLastTransform(tf::Transform T){
+    last_transform = T;
+    return true;		
+}
+
+bool SlamData::SetPreResetTransform(tf::Transform PRT){
+    prereset_transform = PRT;
+    return true;
+}
+
+bool SlamData::SetResettingState(bool RS){
+    ResettingState = RS;
+    return true;
+}
+
+bool SlamData::GetResettingState(void){
+    return ResettingState;
+}
+
+tf::Transform SlamData::GetPreResetTransform(void){
+    return prereset_transform;
+}
+
+
+cv::Mat SlamData::TransformToCV(tf::Transform T){
+
+    tf::Matrix3x3 Rotationtf  = T.getBasis();
+    tf::Vector3 Translationtf = T.getOrigin();
+
+    float TranslationMatrix[16]= {Rotationtf.getRow(0).x(), Rotationtf.getRow(0).y(),Rotationtf.getRow(0).z(), Translationtf.x(),
+														  Rotationtf.getRow(1).x(), Rotationtf.getRow(1).y(), Rotationtf.getRow(1).z(), Translationtf.y(),
+              							  Rotationtf.getRow(2).x(), Rotationtf.getRow(2).y(), Rotationtf.getRow(2).z(), Translationtf.z(),
+              							  0                       , 0                       , 0                       , 1}; 
+
+    cv::Mat TransformCV = cv::Mat(4,4,CV_32F,TranslationMatrix);
+    std::cout<<"TransformCV = "<<std::endl;
+    std::cout<<TransformCV<<std::endl;
+
+    return TransformCV; 
+
+   
+}
+
+
+tf::Transform SlamData::TransformFromMat (cv::Mat position_mat) {
+		cv::Mat rotation(3,3,CV_32F);
+		cv::Mat translation(3,1,CV_32F);
+
+		rotation = position_mat.rowRange(0,3).colRange(0,3);
+		translation = position_mat.rowRange(0,3).col(3);
+
+		tf::Matrix3x3 tf_camera_rotation (rotation.at<float> (0,0), rotation.at<float> (0,1), rotation.at<float> (0,2),
+		                                  rotation.at<float> (1,0), rotation.at<float> (1,1), rotation.at<float> (1,2),
+		                                  rotation.at<float> (2,0), rotation.at<float> (2,1), rotation.at<float> (2,2)
+		                                 );
+
+		tf::Vector3 tf_camera_translation (translation.at<float> (0), translation.at<float> (1), translation.at<float> (2));
+
+		//Coordinate transformation matrix from orb coordinate system to ros coordinate system
+		const tf::Matrix3x3 tf_orb_to_ros (0, 0, 1,
+		                                  -1, 0, 0,
+		                                   0,-1, 0);
+
+		//Transform from orb coordinate system to ros coordinate system on camera coordinates
+		tf_camera_rotation = tf_orb_to_ros*tf_camera_rotation;
+		tf_camera_translation = tf_orb_to_ros*tf_camera_translation;
+
+		//Inverse matrix
+		tf_camera_rotation = tf_camera_rotation.transpose();
+		tf_camera_translation = -(tf_camera_rotation*tf_camera_translation);
+
+		//Transform from orb coordinate system to ros coordinate system on map coordinates
+		tf_camera_rotation = tf_orb_to_ros*tf_camera_rotation;
+		tf_camera_translation = tf_orb_to_ros*tf_camera_translation;
+
+		return tf::Transform (tf_camera_rotation, tf_camera_translation);
+}
+
+void Node::PublishPositionAsTransform (cv::Mat position) {
+		tf::Transform transform = TransformFromMat (position);
+		static tf::TransformBroadcaster tf_broadcaster;
+		current_frame_time_ = ros::Time::now();
+		tf_broadcaster.sendTransform(tf::StampedTransform(transform, current_frame_time_, "world", "ORB_SLAM2"));
+}
+
+void Node::PublishPositionAsPoseStamped (cv::Mat position) {
+		tf::Transform grasp_tf = TransformFromMat (position);
+		current_frame_time_ = ros::Time::now();
+		tf::Stamped<tf::Pose> grasp_tf_pose(grasp_tf, current_frame_time_, "world");
+		geometry_msgs::PoseStamped pose_msg;
+		tf::poseStampedTFToMsg (grasp_tf_pose, pose_msg);
+		pose_pub.publish(pose_msg);
+}
+
+
+
+
 
 } //namespace ORB_SLAM
