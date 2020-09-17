@@ -34,17 +34,27 @@
 
 #include"../../../include/System.h"
 
+#include "SlamData.h"
+
 using namespace std;
 
 class ImageGrabber
 {
 public:
-    ImageGrabber(ORB_SLAM2::System* pSLAM):mpSLAM(pSLAM){}
+    ImageGrabber(ORB_SLAM2::System* pSLAM, ORB_SLAM2::SlamData* pSLAMDATA){
+    
+        mpSLAM = pSLAM;
+        mpSLAMDATA = pSLAMDATA;
+    
+
+    }
 
     void GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const sensor_msgs::ImageConstPtr& msgRight);
 
     ORB_SLAM2::System* mpSLAM;
-    bool do_rectify;
+
+    ORB_SLAM2::SlamData* mpSLAMDATA;
+    bool do_rectify = true;
     cv::Mat M1l,M2l,M1r,M2r;
 };
 
@@ -53,18 +63,23 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "RGBD");
     ros::start();
 
-    if(argc != 4)
+    if(argc != 6)
     {
         cerr << endl << "Usage: rosrun ORB_SLAM2 Stereo path_to_vocabulary path_to_settings do_rectify" << endl;
         ros::shutdown();
         return 1;
     }    
-
+    bool bUseViewer, bEnablePublishROSTopic;
+    bEnablePublishROSTopic = true;
+    bUseViewer = false;
+    
     //ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::STEREO,false);
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::STEREO,true);
+    ros::NodeHandle nodeHandler;
+    ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::STEREO,bUseViewer);
+    ORB_SLAM2::SlamData SLAMDATA(&SLAM, &nodeHandler, bEnablePublishROSTopic);
 
-    ImageGrabber igb(&SLAM);
+    ImageGrabber igb(&SLAM, &SLAMDATA);  
 
     stringstream ss(argv[3]);
 	ss >> boolalpha >> igb.do_rectify;
@@ -161,12 +176,28 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
         cv::Mat imLeft, imRight;
         cv::remap(cv_ptrLeft->image,imLeft,M1l,M2l,cv::INTER_LINEAR);
         cv::remap(cv_ptrRight->image,imRight,M1r,M2r,cv::INTER_LINEAR);
-        mpSLAM->TrackStereo(imLeft,imRight,cv_ptrLeft->header.stamp.toSec());
+        cv::Mat Tcw = mpSLAM->TrackStereo(imLeft,imRight,cv_ptrLeft->header.stamp.toSec());
+        if (!Tcw.empty()){
+          mpSLAMDATA->update(Tcw);
+          mpSLAMDATA->PublishCurrentFrameForROS();
+        }
+        std::cout<<"Tcw = "<<std::endl;
+        std::cout<<Tcw<<std::endl;
     }
     else
     {
-        mpSLAM->TrackStereo(cv_ptrLeft->image,cv_ptrRight->image,cv_ptrLeft->header.stamp.toSec());
+        cv::Mat Tcw = mpSLAM->TrackStereo(cv_ptrLeft->image,cv_ptrRight->image,cv_ptrLeft->header.stamp.toSec());
+        if (!Tcw.empty()){
+          mpSLAMDATA->update(Tcw);
+          mpSLAMDATA->PublishCurrentFrameForROS();
+        }
+        std::cout<<"Tcw = "<<std::endl;
+        std::cout<<Tcw<<std::endl;
     }
+    
+    
+    
+
 
 }
 

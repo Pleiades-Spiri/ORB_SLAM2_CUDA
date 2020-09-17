@@ -2,13 +2,15 @@
 <launch>
 
     <arg name="vocabularty_path" default="$(find ORB_SLAM2_CUDA)/../../../Vocabulary/ORBvoc.txt" />
-    <arg name="camera_setting_path" default="$(find ORB_SLAM2_CUDA)/conf/spiri_mono_320x240.yaml" />
+    <arg name="camera_setting_path" default="$(find ORB_SLAM2_CUDA)/conf/Spiri_lowRes_Stereo.yaml" />
     <arg name="bUseViewer" default="false" />
     <arg name="bEnablePublishROSTopic" default="true" />
+    <arg name="do_rectify" default="true" />
 
-    <node name="ORB_SLAM2_CUDA" pkg="ORB_SLAM2_CUDA" type="Mono" output="screen" 
-    	args="$(arg vocabularty_path) $(arg camera_setting_path) $(arg bUseViewer) $(arg bEnablePublishROSTopic)">
-        <remap from="/camera/image_raw" to="/stereo/left/image_raw" />
+    <node name="ORB_SLAM2_CUDA" pkg="ORB_SLAM2_CUDA" type="Stereo" output="screen" 
+    	args="$(arg vocabularty_path) $(arg camera_setting_path) $(arg bUseViewer) $(arg bEnablePublishROSTopic) $(arg do_rectify) " >
+        <remap from="/camera/left/image_raw" to="/stereo/left/image_raw" />
+	<remap from="/camera/right/image_raw" to="/stereo/right/image_raw" />
     </node>
 
     <node pkg="tf" type="static_transform_publisher" name="world_to_local_origin" args="0 0 0 0 0 0 world local_origin 10" />

@@ -1,0 +1,120 @@
+%YAML:1.0
+
+# Camera calibration and distortion parameters (OpenCV)
+
+Camera.fx: 224.12527
+Camera.fy: 298.99365
+Camera.cx: 163.50569
+Camera.cy: 124.05618
+
+Camera.k1: -0.366492
+Camera.k2: 0.131390
+Camera.p1: 0.003942
+Camera.p2: 0.002818
+Camera.k3: 0.0
+
+Camera.width: 320
+Camera.height: 240
+
+# Camera frames per second
+Camera.fps: 20.0
+
+# stereo baseline (distance between cameras in m?) times fx
+Camera.bf: 11.878 # 40
+
+# Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
+Camera.RGB: 1
+
+# Close/Far threshold. Baseline times.
+ThDepth: 35 # what is this?
+
+# seen elsewhere... what is this?
+#DepthMapFactor: 1000.0
+
+#--------------------------------------------------------------------------------------------
+# Stereo Rectification. Only if you need to pre-rectify the images.
+# Camera.fx, .fy, etc must be the same as in LEFT.P
+#--------------------------------------------------------------------------------------------
+LEFT.height: 320
+LEFT.width: 240
+LEFT.D: !!opencv-matrix
+   rows: 1
+   cols: 5
+   dt: d
+   data: [-0.366492, 0.131390, 0.003942, 0.002818, 0.000000]
+LEFT.K: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data:[224.12527,   0.     , 163.50569,
+           0.     , 298.99365, 124.05618,
+           0.     ,   0.     ,   1.     ]
+
+LEFT.R:  !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 0.96991977, -0.02257566, -0.2423757 ,
+          0.0204853 ,  0.99972807, -0.0111415 ,
+          0.24256132,  0.00584122,  0.97011849]
+
+LEFT.P:  !!opencv-matrix
+   rows: 3
+   cols: 4
+   dt: d
+   data: [306.37919,   0.     , 283.52062,   0.     ,
+           0.     , 306.37919, 131.00384,   0.     ,
+           0.     ,   0.     ,   1.     ,   0.     ]
+
+
+RIGHT.height: 320
+RIGHT.width: 240
+RIGHT.D: !!opencv-matrix
+   rows: 1
+   cols: 5
+   dt: d
+   data: [-0.374990, 0.147179, -0.003677, 0.004474, 0.000000]
+RIGHT.K: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [230.458  ,   0.     , 160.56834,
+           0.     , 306.66993, 129.52017,
+           0.     ,   0.     ,   1.     ]
+
+RIGHT.R:  !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 0.97662177, -0.03351029, -0.21233696,
+          0.03533651,  0.99936389,  0.0048104 ,
+          0.21204069, -0.01220118,  0.97718467]
+
+RIGHT.P:  !!opencv-matrix
+   rows: 3
+   cols: 4
+   dt: d
+   data: [306.37919,   0.     , 283.52062, -17.07839,
+           0.     , 306.37919, 131.00384,   0.     ,
+           0.     ,   0.     ,   1.     ,   0.     ]
+
+
+#--------------------------------------------------------------------------------------------
+# ORB Parameters
+#--------------------------------------------------------------------------------------------
+
+# ORB Extractor: Number of features per image
+ORBextractor.nFeatures: 2000
+
+# ORB Extractor: Scale factor between levels in the scale pyramid
+ORBextractor.scaleFactor: 1.2
+
+# ORB Extractor: Number of levels in the scale pyramid
+ORBextractor.nLevels: 8
+
+# ORB Extractor: Fast threshold
+# Image is divided in a grid. At each cell FAST are extracted imposing a minimum response.
+# Firstly we impose iniThFAST. If no corners are detected we impose a lower value minThFAST
+# You can lower these values if your images have low contrast
+ORBextractor.iniThFAST: 20
+ORBextractor.minThFAST: 7

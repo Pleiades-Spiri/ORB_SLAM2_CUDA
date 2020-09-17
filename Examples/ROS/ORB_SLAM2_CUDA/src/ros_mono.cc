@@ -150,12 +150,12 @@ void ImageGrabber::GrabImage(const sensor_msgs::ImageConstPtr& msg)
         std::cout<<"Reseting system"<<std::endl;
 
 
-				mpSLAMDATA->SetPreResetTransform(mpSLAMDATA->get_last_transform());
+				//mpSLAMDATA->SetPreResetTransform(mpSLAMDATA->get_last_transform());
         mpSLAMDATA->SetResettingState(true);
 
 
-        mpSLAM->SetTrackerPosition(mpSLAMDATA->TransformToCV(mpSLAMDATA->get_last_transform()).clone());
-        mpSLAM->SetTrackerPoseState();
+        //mpSLAM->SetTrackerPosition(mpSLAMDATA->TransformToCV(mpSLAMDATA->get_last_transform()).clone());
+        //mpSLAM->SetTrackerPoseState();
         mpSLAM->Reset();
 
 			}
@@ -168,7 +168,7 @@ void ImageGrabber::GrabImage(const sensor_msgs::ImageConstPtr& msg)
 					 mpSLAMDATA->IntializationState(true);
         }
 
-
+				
         mpSLAMDATA->PublishTFForROS(Tcw, cv_ptr);
 
         mpSLAMDATA->PublishPoseForROS(cv_ptr);
@@ -176,14 +176,18 @@ void ImageGrabber::GrabImage(const sensor_msgs::ImageConstPtr& msg)
         mpSLAMDATA->PublishPointCloudForROS();
 
         mpSLAMDATA->PublishCurrentFrameForROS();
+				
+        if (mpSLAM->GetTrackerIntial()){
+					mpSLAMDATA->SetLastpose(Tcw);
         
-        mpSLAM->SetLastPose(mpSLAMDATA->TransformToCV(mpSLAMDATA->get_last_transform()).clone());
-        mpSLAM->SetSysHasPose(true);
-			  
-
-        std::cout<<mpSLAMDATA->get_last_transform().getOrigin().x()<<" ";
-        std::cout<<mpSLAMDATA->get_last_transform().getOrigin().y()<<" ";
-        std::cout<<mpSLAMDATA->get_last_transform().getOrigin().z()<<std::endl;
+        	mpSLAM->SetLastPose(Tcw);
+					mpSLAM->SetTrackerPosition(Tcw);
+       		mpSLAM->SetTrackerPoseState();
+        	mpSLAM->SetSysHasPose(true);
+			  }
+				mpSLAMDATA->update(Tcw);
+				std::cout<<"System last known pose = "<<std::endl;
+				std::cout<<mpSLAM->GetLastPose()<<std::endl;
 
     }
 }

@@ -136,6 +136,10 @@ public:
     bool SetTrackerPosition (cv::Mat Pose);
     bool SetTrackerPoseState ();
 
+    ////Set the tracker weather the intialization was correct or not yet
+    bool SetTrackerIntial(bool TrInS);
+    bool GetTrackerIntial();
+
 
 private:
 

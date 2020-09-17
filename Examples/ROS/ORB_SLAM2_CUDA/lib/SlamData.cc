@@ -21,6 +21,7 @@ SlamData::SlamData(ORB_SLAM2::System* pSLAM, ros::NodeHandle *nodeHandler, bool 
     last_transform.setRotation(q);
 
     pose_pub = (*nodeHandler).advertise<geometry_msgs::PoseStamped>("posestamped", 1000);
+    pose_pub_vision = (*nodeHandler).advertise<geometry_msgs::PoseStamped>("posestamped_vision", 1000);
     pose_inc_pub = (*nodeHandler).advertise<geometry_msgs::PoseWithCovarianceStamped>("incremental_pose_cov", 1000);
  
     all_point_cloud_pub = (*nodeHandler).advertise<sensor_msgs::PointCloud2>("point_cloud_all",1);
@@ -310,24 +311,35 @@ tf::Transform SlamData::TransformFromMat (cv::Mat position_mat) {
 		return tf::Transform (tf_camera_rotation, tf_camera_translation);
 }
 
-void Node::PublishPositionAsTransform (cv::Mat position) {
+void SlamData::PublishPositionAsTransform (cv::Mat position) {
 		tf::Transform transform = TransformFromMat (position);
 		static tf::TransformBroadcaster tf_broadcaster;
-		current_frame_time_ = ros::Time::now();
-		tf_broadcaster.sendTransform(tf::StampedTransform(transform, current_frame_time_, "world", "ORB_SLAM2"));
+		tf_broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "world", "ORB_SLAM2"));
 }
 
-void Node::PublishPositionAsPoseStamped (cv::Mat position) {
+void SlamData::PublishPositionAsPoseStamped (cv::Mat position) {
 		tf::Transform grasp_tf = TransformFromMat (position);
-		current_frame_time_ = ros::Time::now();
-		tf::Stamped<tf::Pose> grasp_tf_pose(grasp_tf, current_frame_time_, "world");
+		tf::Stamped<tf::Pose> grasp_tf_pose(grasp_tf, ros::Time::now(), "world");
 		geometry_msgs::PoseStamped pose_msg;
 		tf::poseStampedTFToMsg (grasp_tf_pose, pose_msg);
-		pose_pub.publish(pose_msg);
+		pose_pub_vision.publish(pose_msg);
+}
+
+void SlamData::update(cv::Mat position){
+    PublishPositionAsTransform (position);
+    PublishPositionAsPoseStamped (position);			
 }
 
 
+void SlamData::SetLastpose(cv::Mat lastpose){
+    
+    LastPose = lastpose;  
+}
 
+cv::Mat SlamData::GetLastPose(void){
+
+    return LastPose;
+}
 
 
 } //namespace ORB_SLAM

@@ -500,4 +500,16 @@ bool System::SetTrackerPoseState(){
 }
 
 
+bool System::SetTrackerIntial(bool TrInS){
+    
+    mpTracker->SetTrackerIntialStates(TrInS);
+    return true;
+}
+bool System::GetTrackerIntial(){
+
+    return mpTracker->GetTrackerIntialStates();
 } //namespace ORB_SLAM
+
+
+
+}

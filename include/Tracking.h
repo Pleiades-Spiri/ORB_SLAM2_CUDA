@@ -120,6 +120,10 @@ public:
     bool SetTrackerLastKnownPose (cv::Mat P);
     bool SetTrackerHasPose();
 
+    bool TrackerIntialized;
+    bool SetTrackerIntialStates(bool TIS);
+    bool GetTrackerIntialStates();
+
 
 protected:
 

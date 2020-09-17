@@ -77,6 +77,7 @@ ${LIBS}
 # Node for stereo camera
 rosbuild_add_executable(Stereo
 src/ros_stereo.cc
+lib/SlamData.cc
 )
 
 target_link_libraries(Stereo

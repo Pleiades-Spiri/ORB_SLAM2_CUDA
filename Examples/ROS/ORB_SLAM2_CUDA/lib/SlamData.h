@@ -94,8 +94,11 @@ namespace ORB_SLAM2
         void PublishPositionAsPoseStamped(cv::Mat position);
         tf::Transform TransformFromMat (cv::Mat position_mat);
 
+	void update(cv::Mat position);
 
-	
+	cv::Mat LastPose;
+	void SetLastpose(cv::Mat lastpose);
+	cv::Mat GetLastPose(void);	
 
     private:
         bool bEnablePublishROSTopic;
@@ -106,6 +109,7 @@ namespace ORB_SLAM2
         FrameDrawer* mpFrameDrawer;
         
         ros::Publisher pose_pub;
+        ros::Publisher pose_pub_vision;
         ros::Publisher pose_inc_pub;
         ros::Publisher all_point_cloud_pub;
         ros::Publisher ref_point_cloud_pub;  

@@ -48,6 +48,7 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
     mpKeyFrameDB(pKFDB), mpInitializer(static_cast<Initializer*>(NULL)), mpSystem(pSys),
     mpFrameDrawer(pFrameDrawer), mpMapDrawer(pMapDrawer), mpMap(pMap), mnLastRelocFrameId(0)
 {
+    TrackerIntialized = false;
     // Load camera parameters from settings file
 
     cv::FileStorage fSettings(strSettingPath, cv::FileStorage::READ);
@@ -565,7 +566,9 @@ void Tracking::StereoInitialization()
 
 void Tracking::MonocularInitialization()
 {
-
+		std::cout<<"Intialization monocular"<<std::endl;
+		std::cout<<"if(!mpInitializer) = ";
+		std::cout<< !mpInitializer <<std::endl;
     if(!mpInitializer)
     {
         // Set Reference Frame
@@ -601,7 +604,7 @@ void Tracking::MonocularInitialization()
         // Find correspondences
         ORBmatcher matcher(0.9,true);
         int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,100);
-
+	
         // Check if there are enough correspondences
         if(nmatches<100)
         {
@@ -633,6 +636,8 @@ void Tracking::MonocularInitialization()
             }
             else{
                std::cout<<"Intializing with last known pose"<<std::endl;
+               std::cout<<"Using Pose"<<std::endl;
+               std::cout<<LastKnownPose<<std::endl;
                mInitialFrame.SetPose(LastKnownPose);
                cv::Mat Tcw = LastKnownPose;
             }
@@ -704,10 +709,11 @@ void Tracking::CreateInitialMapMonocular()
     if(medianDepth<0 || pKFcur->TrackedMapPoints(1)<100)
     {
         cout << "Wrong initialization, reseting..." << endl;
+        TrackerIntialized = false;
         Reset();
         return;
     }
-
+    TrackerIntialized = true;
     // Scale initial baseline
     cv::Mat Tc2w = pKFcur->GetPose();
     Tc2w.col(3).rowRange(0,3) = Tc2w.col(3).rowRange(0,3)*invMedianDepth;
@@ -1594,5 +1600,16 @@ bool Tracking::SetTrackerHasPose()
     TrackerHasPose = true;
     return true;
 }
+
+bool Tracking::SetTrackerIntialStates(bool TIS){
+   
+    TrackerIntialized = TIS;
+    return true;
+}
+bool Tracking::GetTrackerIntialStates(){
+
+    return TrackerIntialized;
+}
+
 
 } //namespace ORB_SLAM
