@@ -311,6 +311,43 @@ tf::Transform SlamData::TransformFromMat (cv::Mat position_mat) {
 		return tf::Transform (tf_camera_rotation, tf_camera_translation);
 }
 
+
+cv::Mat SlamData::TransformFromQuat (geometry_msgs::Quaternion Quat){
+	
+	float qx,qy,qz,qw,qx2,qy2,qz2;
+	qx = Quat.x;
+	qy = Quat.y;
+	qz = Quat.z;
+	qw = Quat.w;
+	qx2=qx*qx;
+  qy2=qy*qy;
+	qz2=qz*qz;
+	
+	float RotationMatrix[9]= {1 - (2*qy2)-(2*qz2) , 2*qx*qy - 2*qz*qw , 2*qx*qz + 2*qy*qw,
+														2*qx*qy + 2*qz*qw   , 1 - 2*qx2 - 2*qz2 , 2*qy*qz - 2*qx*qw,
+              							2*qx*qz - 2*qy*qw   , 2*qy*qz + 2*qx*qw , 1 - 2*qx2 - 2*qy2};
+	std::cout<<"DEBUG Node.cc ln 226 RotationMatrix= ";
+	std::cout<<RotationMatrix<<std::endl;
+
+	cv::Mat RotationCV = cv::Mat(3,3,CV_32F,RotationMatrix); 
+	std::cout<<"RotationCV = ";
+	std::cout<< RotationCV <<std::endl;
+	std::cout << " x y z w = ";
+	std::cout << qx << " " << qy << " " << qz << " " << qw <<std::endl;
+
+	float ROSToOrb[9] = {0, -1,  0,
+											 0,  0, -1,
+                       1,  0,  0};
+
+  cv::Mat ROSToOrbCV = cv::Mat(3,3,CV_32F,ROSToOrb); 
+	
+	cv::Mat RotationCVOrb = ROSToOrbCV * RotationCV ;
+  cv::Mat RotationCVorbTrans = RotationCVOrb.t();
+	cv::Mat RotationCVRosOrb = ROSToOrbCV * RotationCVorbTrans ;
+  std::cout<<RotationCVRosOrb<<std::endl; 
+	return RotationCVRosOrb;
+}
+
 void SlamData::PublishPositionAsTransform (cv::Mat position) {
 		tf::Transform transform = TransformFromMat (position);
 		static tf::TransformBroadcaster tf_broadcaster;
@@ -339,6 +376,18 @@ void SlamData::SetLastpose(cv::Mat lastpose){
 cv::Mat SlamData::GetLastPose(void){
 
     return LastPose;
+}
+
+
+cv::Mat SlamData::IMURotation(cv::Mat IMUR, cv::Mat CurrentPose){
+
+    cv::Mat IntegratedPoseMat = cv::Mat(4,4,CV_32F);
+    IMUR.copyTo(IntegratedPoseMat(cv::Rect(0,0,3,3)));
+    CurrentPose.col(3).copyTo(IntegratedPoseMat.col(3));
+	
+
+    return IntegratedPoseMat;
+
 }
 
 

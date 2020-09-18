@@ -8,6 +8,7 @@
 #include <chrono>
 
 #include <tf/transform_broadcaster.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <ros/ros.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/Pose.h>
@@ -78,27 +79,31 @@ namespace ORB_SLAM2
 
         bool EnablePublishROSTopics(void);
 
-	bool IntializationState(bool S);
-	bool SetLastTransform(tf::Transform T);
+        bool IntializationState(bool S);
+        bool SetLastTransform(tf::Transform T);
         tf::Transform get_last_transform();
 
         bool ResettingState;
-	bool SetResettingState(bool RS);
-	bool GetResettingState(void);
+        bool SetResettingState(bool RS);
+        bool GetResettingState(void);
 
-	bool SetPreResetTransform(tf::Transform PRT);
-	tf::Transform GetPreResetTransform(void);
-	cv::Mat TransformToCV(tf::Transform T);
+        bool SetPreResetTransform(tf::Transform PRT);
+        tf::Transform GetPreResetTransform(void);
+        cv::Mat TransformToCV(tf::Transform T);
 
         void PublishPositionAsTransform (cv::Mat position);
         void PublishPositionAsPoseStamped(cv::Mat position);
         tf::Transform TransformFromMat (cv::Mat position_mat);
+        cv::Mat TransformFromQuat (geometry_msgs::Quaternion Quat);
 
-	void update(cv::Mat position);
+        void update(cv::Mat position);
 
-	cv::Mat LastPose;
-	void SetLastpose(cv::Mat lastpose);
-	cv::Mat GetLastPose(void);	
+        cv::Mat LastPose;
+        void SetLastpose(cv::Mat lastpose);
+        cv::Mat GetLastPose(void);
+
+
+        cv::Mat IMURotation(cv::Mat IMUR, cv::Mat CurrentPose);
 
     private:
         bool bEnablePublishROSTopic;

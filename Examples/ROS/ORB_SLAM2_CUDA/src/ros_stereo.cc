@@ -49,7 +49,7 @@ public:
 
     }
 
-    void GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const sensor_msgs::ImageConstPtr& msgRight);
+    void GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const sensor_msgs::ImageConstPtr& msgRight, const geometry_msgs::PoseStampedConstPtr& msgLoPose);
 
     ORB_SLAM2::System* mpSLAM;
 
@@ -81,9 +81,9 @@ int main(int argc, char **argv)
 
     ImageGrabber igb(&SLAM, &SLAMDATA);  
 
-    stringstream ss(argv[3]);
-	ss >> boolalpha >> igb.do_rectify;
-
+    //stringstream ss(argv[6]);
+	//ss >> boolalpha >> igb.do_rectify;
+    igb.do_rectify=true;
     if(igb.do_rectify)
     {      
         // Load settings related to stereo calibration
@@ -129,9 +129,11 @@ int main(int argc, char **argv)
     message_filters::Subscriber<sensor_msgs::Image> right_sub(nh, "camera/right/image_raw", 1);
     message_filters::Subscriber<geometry_msgs::PoseStamped> local_pose_sub(nh, "mavros/local_position/pose", 1);
     
-    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
-    message_filters::Synchronizer<sync_pol> sync(sync_pol(10), left_sub,right_sub);
-    sync.registerCallback(boost::bind(&ImageGrabber::GrabStereo,&igb,_1,_2));
+    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, geometry_msgs::PoseStamped> sync_pol;
+    //message_filters::Synchronizer<sync_pol> sync(sync_pol(10), left_sub,right_sub,local_pose_sub);
+    message_filters::Synchronizer<sync_pol> sync(sync_pol(10), left_sub, right_sub, local_pose_sub);
+    //sync = new message_filters::Synchronizer<sync_pol> (sync_pol(10), left_sub, right_sub, local_pose_sub);
+    sync.registerCallback(boost::bind(&ImageGrabber::GrabStereo,&igb,_1,_2,_3));
 
     ros::spin();
 
@@ -148,7 +150,7 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const sensor_msgs::ImageConstPtr& msgRight)
+void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const sensor_msgs::ImageConstPtr& msgRight, const geometry_msgs::PoseStampedConstPtr& msgLoPose)
 {
     // Copy the ros image message to cv::Mat.
     cv_bridge::CvImageConstPtr cv_ptrLeft;
@@ -172,7 +174,8 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
     }
-
+    std::cout<<"do_rectify = ";
+    std::cout<<do_rectify<<std::endl;
     if(do_rectify)
     {
         cv::Mat imLeft, imRight;
@@ -180,6 +183,15 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
         cv::remap(cv_ptrRight->image,imRight,M1r,M2r,cv::INTER_LINEAR);
         cv::Mat Tcw = mpSLAM->TrackStereo(imLeft,imRight,cv_ptrLeft->header.stamp.toSec());
         if (!Tcw.empty()){
+          //Reading Imu orientation data, normalizing and transforming to cv Mat
+          geometry_msgs::Quaternion LoPoseOrientation = msgLoPose->pose.orientation;
+          tf2::Quaternion LoPoseOrientation_tf(LoPoseOrientation.x,LoPoseOrientation.y,LoPoseOrientation.z,LoPoseOrientation.w);
+          geometry_msgs::Quaternion LoPoseOrinNorm_msg = tf2::toMsg(LoPoseOrientation_tf.normalize());
+          cv::Mat LoPoseOrinRotaionMatrix = mpSLAMDATA->TransformFromQuat(LoPoseOrinNorm_msg).clone();
+          std::cout<<"LoPoseOrinRotaionMatrix ="<<std::endl;
+          std::cout<<LoPoseOrinRotaionMatrix<<std::endl;
+          Tcw = mpSLAMDATA->IMURotation(LoPoseOrinRotaionMatrix,Tcw);
+          
           mpSLAMDATA->SetLastpose(Tcw);
         	mpSLAM->SetLastPose(Tcw);
 					mpSLAM->SetTrackerPosition(Tcw);
@@ -201,6 +213,15 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
     {
         cv::Mat Tcw = mpSLAM->TrackStereo(cv_ptrLeft->image,cv_ptrRight->image,cv_ptrLeft->header.stamp.toSec());
         if (!Tcw.empty()){
+         //Reading Imu orientation data, normalizing and transforming to cv Mat
+          geometry_msgs::Quaternion LoPoseOrientation = msgLoPose->pose.orientation;
+          tf2::Quaternion LoPoseOrientation_tf(LoPoseOrientation.x,LoPoseOrientation.y,LoPoseOrientation.z,LoPoseOrientation.w);
+          geometry_msgs::Quaternion LoPoseOrinNorm_msg = tf2::toMsg(LoPoseOrientation_tf.normalize());
+          cv::Mat LoPoseOrinRotaionMatrix = mpSLAMDATA->TransformFromQuat(LoPoseOrinNorm_msg).clone();
+          std::cout<<"LoPoseOrinRotaionMatrix ="<<std::endl;
+          std::cout<<LoPoseOrinRotaionMatrix<<std::endl;
+          Tcw = mpSLAMDATA->IMURotation(LoPoseOrinRotaionMatrix,Tcw);
+          
           mpSLAMDATA->SetLastpose(Tcw);
         	mpSLAM->SetLastPose(Tcw);
 					mpSLAM->SetTrackerPosition(Tcw);
