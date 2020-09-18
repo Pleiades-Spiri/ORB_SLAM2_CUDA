@@ -127,6 +127,8 @@ int main(int argc, char **argv)
 
     message_filters::Subscriber<sensor_msgs::Image> left_sub(nh, "/camera/left/image_raw", 1);
     message_filters::Subscriber<sensor_msgs::Image> right_sub(nh, "camera/right/image_raw", 1);
+    message_filters::Subscriber<geometry_msgs::PoseStamped> local_pose_sub(nh, "mavros/local_position/pose", 1);
+    
     typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
     message_filters::Synchronizer<sync_pol> sync(sync_pol(10), left_sub,right_sub);
     sync.registerCallback(boost::bind(&ImageGrabber::GrabStereo,&igb,_1,_2));
@@ -178,8 +180,19 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
         cv::remap(cv_ptrRight->image,imRight,M1r,M2r,cv::INTER_LINEAR);
         cv::Mat Tcw = mpSLAM->TrackStereo(imLeft,imRight,cv_ptrLeft->header.stamp.toSec());
         if (!Tcw.empty()){
+          mpSLAMDATA->SetLastpose(Tcw);
+        	mpSLAM->SetLastPose(Tcw);
+					mpSLAM->SetTrackerPosition(Tcw);
+       		mpSLAM->SetTrackerPoseState();
+        	mpSLAM->SetSysHasPose(true);
           mpSLAMDATA->update(Tcw);
           mpSLAMDATA->PublishCurrentFrameForROS();
+          
+        }
+        else{
+          if (mpSLAM->GetSysHasPose()){
+            mpSLAM->Reset();
+          }
         }
         std::cout<<"Tcw = "<<std::endl;
         std::cout<<Tcw<<std::endl;
@@ -188,14 +201,26 @@ void ImageGrabber::GrabStereo(const sensor_msgs::ImageConstPtr& msgLeft,const se
     {
         cv::Mat Tcw = mpSLAM->TrackStereo(cv_ptrLeft->image,cv_ptrRight->image,cv_ptrLeft->header.stamp.toSec());
         if (!Tcw.empty()){
+          mpSLAMDATA->SetLastpose(Tcw);
+        	mpSLAM->SetLastPose(Tcw);
+					mpSLAM->SetTrackerPosition(Tcw);
+       		mpSLAM->SetTrackerPoseState();
+        	mpSLAM->SetSysHasPose(true);
           mpSLAMDATA->update(Tcw);
           mpSLAMDATA->PublishCurrentFrameForROS();
+        }
+        
+        else{
+          if (mpSLAM->GetSysHasPose()){
+            mpSLAM->Reset();
+          }
         }
         std::cout<<"Tcw = "<<std::endl;
         std::cout<<Tcw<<std::endl;
     }
     
-    
+    std::cout<<"tracker last known pose"<<std::endl;
+    std::cout<<mpSLAM->GetLastPose()<<std::endl;
     
 
 
