@@ -81,9 +81,11 @@ int main(int argc, char **argv)
 
     ImageGrabber igb(&SLAM, &SLAMDATA);  
 
-    //stringstream ss(argv[6]);
-	//ss >> boolalpha >> igb.do_rectify;
-    igb.do_rectify=true;
+    stringstream ss(argv[5]);
+    ss >> boolalpha >> igb.do_rectify;
+    std::cout<<"argv[2] = ";
+    std::cout<<argv[2]<<std::endl;
+    igb.do_rectify=false;
     if(igb.do_rectify)
     {      
         // Load settings related to stereo calibration
