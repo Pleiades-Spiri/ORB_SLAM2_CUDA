@@ -1,0 +1,7 @@
+<library path="libMyNodeletClass">
+  <class name="ros_stereo_nodelet/ImageGrabberNodelet" type="ros_stereo_nodelet::ImageGrabberNodelet" base_class_type="nodelet::Nodelet">
+  <description>
+  Nodelet for Image Grabber 
+  </description>
+  </class>
+</library>

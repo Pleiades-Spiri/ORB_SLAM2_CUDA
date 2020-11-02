@@ -1,3 +1,4 @@
+
 cmake_minimum_required(VERSION 2.4.6)
 include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
 
@@ -87,4 +88,12 @@ src/ros_rgbd.cc
 target_link_libraries(RGBD
 ${LIBS}
 )
+add_library(ros_stereo_nodelet SHARED
+   include/ORB_SLAM2_CUDA/ros_stereo_nodelet.h
+   src/ros_stereo_nodelet.cpp
+  lib/SlamData.cc
+ )
+target_link_libraries(ros_stereo_nodelet
+   ${catkin_LIBRARIES}
+ )
 

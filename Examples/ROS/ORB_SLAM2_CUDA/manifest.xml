@@ -1,4 +1,6 @@
 <package>
+  <build_depend>nodelet</build_depend>
+  <run_depend>nodelet</run_depend>
   <description brief="ORB_SLAM2">
 
      ORB_SLAM2
@@ -11,6 +13,9 @@
   <depend package="sensor_msgs"/>
   <depend package="image_transport"/>
   <depend package="cv_bridge"/>
+  <export>
+  <nodelet plugin="${prefix}/nodelet_plugins.xml" />
+  </export>  
 </package>
 
 

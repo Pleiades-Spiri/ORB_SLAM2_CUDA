@@ -25,7 +25,7 @@
 #include <string>
 #include <thread>
 #include <opencv2/core/core.hpp>
-
+#include <unistd.h>
 /* Add this line to fix problem "Eigen deprecated"*/
 #include <unistd.h>
 
